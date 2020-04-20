@@ -12,7 +12,7 @@ def get_template(filename):
         template = f.read()
     return template
 
-def get_menu(id):
+def get_menu():
     menu = [e for e in os.listdir('content') if e[0] !='.']
     menu_temp = "<li><a href='/{0}'>{0}</a></li>"
     return "\n".join([menu_temp.format(m) for m in menu])
