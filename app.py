@@ -14,8 +14,8 @@ def get_template(filename):
 
 def get_menu():
     menu = [e for e in os.listdir('content') if e[0] !='.']
-    menu_temp = "<li><a href='/{0}'>{0}</a></li>"
-    return "\n".join([menu_temp.format(m) for m in menu])
+    menu_temp = "<li><a href='/{0}?id={1}'>{0}</a></li>"
+    return "\n".join([menu_temp.format(m,request.args.get('id')) for m in menu])
 
 
 @app.route('/')
@@ -46,10 +46,13 @@ def main():
     menu = get_menu()
     template = get_template('template.html')
     image_file ='<img src="/static/starisborn.jpg" alt="main" width="50%">'
-    return template.format(title, content, menu, image_file) 
+    return template.format(title, content, menu, image_file, id) 
     
 @app.route('/<title>')
 def html(title):
+    id = request.args.get('id', '')
+    params ={'id': id}
+
     #views/index.html에서 파일을 받아오자
     template = get_template('template.html')
     menu = get_menu()
@@ -57,8 +60,8 @@ def html(title):
         content = f.read()
     lylics=str(content.split('*')[0])[7:].replace("\n","<br>").replace("<br><br>","<br>")
     url = str(content.split('*')[1])[4:]
-      
-    return template.format(title, lylics, menu, url)
+ 
+    return template.format(title, lylics, menu, url, id)
 
 
 
@@ -85,14 +88,13 @@ def login():
 def create():
     template = get_template('create.html')
     menu = get_menu()
+    id = request.args.get('id', '')
     if request.method == 'GET':
-        return template.format("", "", menu, "")
+        return template.format("", "", menu, "", id)
     elif request.method == 'POST':
-
-        with open(f'content/{request.form["title"]}', 'w') as f:
-           
+        with open(f'content/{request.form["title"]}', 'w') as f:         
             f.write(f"lylics: {request.form['desc']}"+'*'+'url:'+request.form['url'])
-        return redirect("/main")
+        return redirect("/main?id="+id)
     
 
 @app.route("/delete/<title>")
@@ -100,12 +102,13 @@ def delete(title):
     template_main = get_template('template.html')
     menu = get_menu()
     menu_list = [e for e in os.listdir('content') if e[0] !='.']
+    id = request.args.get('id', '')
     if title in menu_list:
         os.remove(f"content/{title}")
-        return redirect("/main")
+        return redirect("/main?id="+id)
     else:
         lylics = "왼쪽 곡 리스트 중에서 하나 선택해주세요"
-        return template_main.format(title,  lylics, menu, "")
+        return template_main.format(title,  lylics, menu, "",id)
    
 
 
@@ -119,7 +122,7 @@ def update(title):
     template_main = get_template('template.html')
     menu = get_menu()
     menu_list = [e for e in os.listdir('content') if e[0] !='.']
-
+    id = request.args.get('id', '')
     if request.method == 'GET':
       
             if title in menu_list:
@@ -127,16 +130,16 @@ def update(title):
                     content = f.read()
                     lylics=str(content.split('*')[0])[7:]
                     url = str(content.split('*')[1])[4:]
-                return template.format(title, lylics, menu, url)
+                return template.format(title, lylics, menu, url, id)
             else:
                 lylics = "왼쪽 곡 리스트 중에서 하나 선택해주세요"
-                return template_main.format(title,  lylics, menu, "")
+                return template_main.format(title,  lylics, menu, "", id)
         
     
     elif request.method == 'POST':
         with open(f'content/{request.form["title"]}','w') as f:
              f.write('lylics:'+request.form['desc']+'*'+'url:'+request.form['url'])
-        return redirect(f'/{request.form["title"]}')
+        return redirect(f'/{request.form["title"]}?id={id}')
  
         
         
